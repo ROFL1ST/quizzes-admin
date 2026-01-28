@@ -33,7 +33,7 @@ export const classService = {
     api.get(`/admin/classrooms/${classId}/assignments`),
 
   createAssignment: (classId, data) =>
-    api.post(`/admin/classrooms/${classId}/assignments`, data), // { quiz_id, deadline }
+    api.post(`/classrooms/${classId}/assignments`, data), // { quiz_id, deadline }
 
   deleteAssignment: (assignmentId) =>
     api.delete(`/admin/classrooms/assignments/${assignmentId}`),

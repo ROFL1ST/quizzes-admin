@@ -163,12 +163,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Hardest Questions / Insights */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
             <AlertTriangle size={20} className="text-orange-500" />
             Hardest Questions
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1">
             {data?.hardest_questions?.length > 0 ? (
               data.hardest_questions.map((q, i) => (
                 <div
@@ -193,9 +193,6 @@ export default function DashboardPage() {
               <p className="text-slate-400 text-sm">No data yet.</p>
             )}
           </div>
-          <button className="w-full mt-4 text-sm text-indigo-600 font-bold hover:underline">
-            View All Analytics
-          </button>
         </div>
       </div>
     </div>

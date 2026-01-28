@@ -5,12 +5,15 @@ import { Loader2, X, AlertCircle } from "lucide-react";
 import { contentService } from "@/services/contentService";
 import toast from "react-hot-toast";
 
+const DEFAULT_TOPICS = [];
+
 export default function ManageContentModal({
   isOpen,
   onClose,
   onSuccess,
   type, // "quiz" or "topic"
-  topics = [], // List of topics for Quiz dropdown
+  topics = DEFAULT_TOPICS, // List of topics for Quiz dropdown
+  classroom_id = null, // Optional: if provided, creates quiz for this class
   editData = null, // If provided, mode is EDIT
 }) {
   const [formData, setFormData] = useState({});
@@ -22,12 +25,13 @@ export default function ManageContentModal({
         setFormData(editData);
       } else {
         // Reset for create
+        const initialTopicId = topics.length > 0 ? topics[0].ID : "";
         setFormData(
           type === "quiz"
             ? {
                 title: "",
                 description: "",
-                topic_id: topics.length > 0 ? topics[0].ID : "",
+                topic_id: classroom_id ? null : initialTopicId,
                 difficulty: "easy",
                 time_limit: 60,
                 passing_score: 70,
@@ -39,7 +43,7 @@ export default function ManageContentModal({
         );
       }
     }
-  }, [isOpen, editData, type, topics]);
+  }, [isOpen, editData, type, topics, classroom_id]); // Added classroom_id dependency
 
   if (!isOpen) return null;
 
@@ -50,10 +54,18 @@ export default function ManageContentModal({
       if (type === "quiz") {
         const payload = {
           ...formData,
-          topic_id: parseInt(formData.topic_id),
           time_limit: parseInt(formData.time_limit),
           passing_score: parseInt(formData.passing_score),
         };
+
+        // Handle Topic ID vs Classroom ID
+        if (classroom_id) {
+          payload.classroom_id = parseInt(classroom_id);
+          delete payload.topic_id; // Ensure topic_id is removed if creating for class
+        } else {
+          payload.topic_id = parseInt(formData.topic_id);
+        }
+
         if (editData) await contentService.updateQuiz(editData.ID, payload);
         else await contentService.createQuiz(payload);
       } else {
@@ -77,7 +89,8 @@ export default function ManageContentModal({
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h3 className="font-bold text-lg text-slate-800 capitalize">
-            {editData ? "Edit" : "Create"} {type}
+            {editData ? "Edit" : "Create"} {type}{" "}
+            {classroom_id && "(Classroom)"}
           </h3>
           <button
             onClick={onClose}
@@ -121,24 +134,26 @@ export default function ManageContentModal({
 
           {type === "quiz" && (
             <>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
-                  Topic
-                </label>
-                <select
-                  value={formData.topic_id || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, topic_id: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900"
-                >
-                  {topics.map((t) => (
-                    <option key={t.ID} value={t.ID}>
-                      {t.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {!classroom_id && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">
+                    Topic
+                  </label>
+                  <select
+                    value={formData.topic_id || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, topic_id: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900"
+                  >
+                    {topics.map((t) => (
+                      <option key={t.ID} value={t.ID}>
+                        {t.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

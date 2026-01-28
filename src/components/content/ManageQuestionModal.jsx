@@ -163,6 +163,7 @@ export default function ManageQuestionModal({
                 <option value="multi_select">Multi Select</option>
                 <option value="short_answer">Short Answer</option>
                 <option value="boolean">True/False</option>
+                <option value="essay">Essay (AI Graded)</option>
               </select>
             </div>
           </div>
@@ -253,7 +254,9 @@ export default function ManageQuestionModal({
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
-              Correct Answer
+              {formData.type === "essay"
+                ? "Teacher Key (Jawaban Acuan)"
+                : "Correct Answer"}
             </label>
             {formData.type === "boolean" ? (
               <select
@@ -317,6 +320,17 @@ export default function ManageQuestionModal({
                   );
                 })}
               </div>
+            ) : formData.type === "essay" ? (
+              <textarea
+                rows={3}
+                required
+                value={formData.correct}
+                onChange={(e) =>
+                  setFormData({ ...formData, correct: e.target.value })
+                }
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-slate-900"
+                placeholder="Masukkan jawaban ideal / kunci jawaban di sini..."
+              />
             ) : (
               <input
                 type="text"

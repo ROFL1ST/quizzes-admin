@@ -13,6 +13,7 @@ export default function CreateAssignmentModal({
   onSuccess,
 }) {
   const [quizzes, setQuizzes] = useState([]);
+  const [source, setSource] = useState("global"); // "global" | "classroom"
   const [formData, setFormData] = useState({
     quiz_id: "",
     deadline: "",
@@ -21,12 +22,25 @@ export default function CreateAssignmentModal({
 
   useEffect(() => {
     if (isOpen) {
-      // Fetch quizzes for dropdown
-      contentService.getAllQuizzes(1, 100).then((res) => {
-        setQuizzes(res.data?.data || []);
-      });
+      fetchQuizzes(source);
     }
-  }, [isOpen]);
+  }, [isOpen, source]);
+
+  const fetchQuizzes = async (selectedSource) => {
+    try {
+      let filters = {};
+      if (selectedSource === "global") {
+        filters.only_global = true;
+      } else {
+        filters.classroom_id = classId;
+      }
+
+      const res = await contentService.getAllQuizzes(1, 100, filters);
+      setQuizzes(res.data?.data || []);
+    } catch (err) {
+      toast.error("Failed to load quizzes");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,9 +81,35 @@ export default function CreateAssignmentModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Source Toggle */}
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setSource("global")}
+              className={`py-2 text-sm font-bold rounded-lg transition-all ${
+                source === "global"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Global Quizzes
+            </button>
+            <button
+              type="button"
+              onClick={() => setSource("classroom")}
+              className={`py-2 text-sm font-bold rounded-lg transition-all ${
+                source === "classroom"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Classroom Quizzes
+            </button>
+          </div>
+
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
-              Select Quiz
+              Select Quiz ({source === "global" ? "Global" : "Classroom"})
             </label>
             <select
               required
