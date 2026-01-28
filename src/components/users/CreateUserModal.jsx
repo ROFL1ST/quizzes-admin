@@ -74,7 +74,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900"
                 placeholder="e.g. John Doe"
               />
               <User
@@ -96,7 +96,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, username: e.target.value })
                 }
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900"
                 placeholder="e.g. johndoe"
               />
               <User
@@ -118,7 +118,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900"
                 placeholder="••••••••"
               />
               <Lock
@@ -138,12 +138,12 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, role_id: e.target.value })
                 }
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-slate-900"
               >
                 {roles.length > 0 ? (
                   roles.map((r) => (
                     <option key={r.ID} value={r.ID}>
-                      {r.Name.toUpperCase()}
+                      {r.name.toUpperCase()}
                     </option>
                   ))
                 ) : (

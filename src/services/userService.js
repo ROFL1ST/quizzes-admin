@@ -1,8 +1,13 @@
 import api from "./api";
 
 export const userService = {
-  // Fetch all users (with pagination/search if supported, currently get all)
-  getAllUsers: () => api.get("/admin/users"),
+  // Fetch all users (Students)
+  getAllUsers: (page = 1, limit = 10) =>
+    api.get(`/admin/users?page=${page}&limit=${limit}`),
+
+  // Fetch all Staff (Admins/Instructors)
+  getAllAdmins: (page = 1, limit = 10) =>
+    api.get(`/admin/admins?page=${page}&limit=${limit}`),
 
   // Role Management
   getAllRoles: () => api.get("/admin/roles"),
