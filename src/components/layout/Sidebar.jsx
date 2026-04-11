@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   GraduationCap,
   BarChart3,
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -50,6 +51,12 @@ export default function Sidebar() {
       label: "Analytics",
       href: "/dashboard/analytics",
       icon: BarChart3,
+      roles: ["admin", "supervisor"],
+    },
+    {
+      label: "Shop Items",
+      href: "/dashboard/items",
+      icon: ShoppingBag,
       roles: ["admin", "supervisor"],
     },
     {
