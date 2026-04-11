@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   GraduationCap,
   ShoppingBag,
+  Flag,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -53,7 +55,19 @@ export default function Sidebar() {
       roles: ["admin", "supervisor"],
     },
     {
-      label: "System Health",
+      label: "Reports",
+      href: "/dashboard/reports",
+      icon: Flag,
+      roles: ["admin", "supervisor"],
+    },
+    {
+      label: "Reviews",
+      href: "/dashboard/reviews",
+      icon: Star,
+      roles: ["admin", "supervisor"],
+    },
+    {
+      label: "System",
       href: "/dashboard/system",
       icon: ShieldCheck,
       roles: ["admin", "supervisor"],
