@@ -9,7 +9,6 @@ import {
   LogOut,
   ShieldCheck,
   GraduationCap,
-  BarChart3,
   ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
@@ -46,12 +45,6 @@ export default function Sidebar() {
       href: "/dashboard/quizzes",
       icon: BookOpen,
       roles: ["pengajar", "admin", "supervisor"],
-    },
-    {
-      label: "Analytics",
-      href: "/dashboard/analytics",
-      icon: BarChart3,
-      roles: ["admin", "supervisor"],
     },
     {
       label: "Shop Items",

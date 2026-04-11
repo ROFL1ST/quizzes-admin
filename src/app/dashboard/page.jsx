@@ -11,9 +11,127 @@ import {
   Loader2,
   AlertTriangle,
   TrendingUp,
+  Activity,
+  HelpCircle,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+// ── Stat Card ─────────────────────────────────────────────────────
+function StatCard({ label, value, icon: Icon, color, sub }) {
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-all">
+      <div className={`p-4 rounded-xl text-white shadow-lg ${color}`}>
+        <Icon size={22} />
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
+        <h3 className="text-2xl font-black text-slate-800">{value ?? "—"}</h3>
+        {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Weekly Bar Chart ──────────────────────────────────────────────
+function WeeklyBarChart({ data }) {
+  if (!data || data.length === 0)
+    return (
+      <div className="h-52 flex items-center justify-center text-slate-300 italic text-sm">
+        No activity data available
+      </div>
+    );
+
+  const maxVal = Math.max(...data.map((d) => d.count), 1);
+
+  return (
+    <div className="h-52 flex items-end justify-between gap-2 pt-4">
+      {data.map((day, i) => {
+        const heightPct = Math.max((day.count / maxVal) * 100, 3);
+        const label = new Date(day.date).toLocaleDateString("en-US", { weekday: "short" });
+        const dateLabel = new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        return (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+            <span className="text-xs font-bold text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+              {day.count}
+            </span>
+            <div
+              className="w-full bg-indigo-100 group-hover:bg-indigo-400 rounded-t-lg transition-all duration-300"
+              style={{ height: `${heightPct * 1.8}px`, minHeight: "6px" }}
+            />
+            <span className="text-[10px] text-slate-500 font-semibold">{label}</span>
+            <span className="text-[9px] text-slate-300 hidden group-hover:block">{dateLabel}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Topic Distribution ────────────────────────────────────────────
+function TopicDistribution({ data }) {
+  if (!data || data.length === 0)
+    return <p className="text-slate-300 text-sm italic text-center py-8">No topic data</p>;
+
+  const total = data.reduce((s, t) => s + t.value, 0);
+  const COLORS = ["bg-indigo-500", "bg-violet-500", "bg-sky-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500"];
+  const BAR_COLORS = ["bg-indigo-400", "bg-violet-400", "bg-sky-400", "bg-emerald-400", "bg-amber-400", "bg-rose-400"];
+
+  return (
+    <div className="space-y-3">
+      {data.slice(0, 6).map((t, i) => {
+        const pct = total > 0 ? ((t.value / total) * 100).toFixed(1) : 0;
+        return (
+          <div key={i}>
+            <div className="flex justify-between items-center mb-1">
+              <div className="flex items-center gap-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${COLORS[i % COLORS.length]}`} />
+                <span className="text-sm font-medium text-slate-700 truncate max-w-[140px]">{t.label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">{t.value} quizzes</span>
+                <span className="text-xs font-bold text-slate-600 w-10 text-right">{pct}%</span>
+              </div>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${BAR_COLORS[i % BAR_COLORS.length]}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Hardest Question Card ─────────────────────────────────────────
+function HardestQuestionCard({ q, rank }) {
+  const total = q.correct + q.incorrect;
+  const incorrectPct = total > 0 ? Math.round((q.incorrect / total) * 100) : 0;
+  return (
+    <div className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-black">
+        {rank}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-slate-700 line-clamp-2">{q.question_text}</p>
+        <div className="flex items-center gap-3 mt-1.5">
+          <span className="text-xs text-red-500 font-bold">✗ {q.incorrect}</span>
+          <span className="text-xs text-green-500 font-bold">✓ {q.correct}</span>
+          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-red-400 rounded-full" style={{ width: `${incorrectPct}%` }} />
+          </div>
+          <span className="text-xs text-slate-400">{incorrectPct}% fail</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Dashboard Page ───────────────────────────────────────────
 export default function DashboardPage() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
@@ -23,177 +141,103 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         const res = await dashboardService.getAnalytics();
-        if (res.data && res.data.data) {
-          setData(res.data.data);
-        }
-      } catch (error) {
+        if (res.data?.data) setData(res.data.data);
+      } catch {
         toast.error("Failed to load dashboard stats");
       } finally {
         setLoading(false);
       }
     };
-
     fetchStats();
   }, []);
 
   if (!user) return null;
 
-  if (loading) {
+  if (loading)
     return (
       <div className="flex justify-center items-center h-96">
         <Loader2 className="animate-spin text-indigo-500" size={40} />
       </div>
     );
-  }
-
-  // Fallback if data is empty (API not ready)
-  const stats = data
-    ? [
-        {
-          label: "Total Users",
-          value: data.total_users,
-          icon: Users,
-          color: "bg-blue-500",
-        },
-        {
-          label: "Active Quizzes",
-          value: data.total_quizzes,
-          icon: BookOpen,
-          color: "bg-indigo-500",
-        },
-        {
-          label: "Total Questions",
-          value: data.total_questions,
-          icon: FileCheck,
-          color: "bg-green-500",
-        },
-        {
-          label: "Avg Score",
-          value: `${data.average_score ? data.average_score.toFixed(1) : "0"}%`,
-          icon: Target,
-          color: "bg-orange-500",
-        },
-      ]
-    : [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">
-          Dashboard Overview
-        </h1>
-        <p className="text-slate-500">
-          Welcome back, {user.name}. Here is what's happening today.
+        <h1 className="text-2xl font-bold text-slate-800">Dashboard Overview</h1>
+        <p className="text-slate-500 mt-1">
+          Welcome back, <span className="font-semibold text-slate-700">{user.name || user.username}</span>. Here's what's happening.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, idx) => (
-          <div
-            key={idx}
-            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow"
-          >
-            <div
-              className={`p-4 rounded-xl text-white shadow-lg shadow-indigo-100 ${stat.color}`}
-            >
-              <stat.icon size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-400">{stat.label}</p>
-              <h3 className="text-2xl font-black text-slate-800">
-                {stat.value}
-              </h3>
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+        <StatCard label="Total Users" value={data?.total_users?.toLocaleString()} icon={Users} color="bg-blue-500 shadow-blue-200" />
+        <StatCard label="Active Users (7d)" value={data?.active_users?.toLocaleString()} icon={Activity} color="bg-emerald-500 shadow-emerald-200" sub="Unique users who played a quiz" />
+        <StatCard label="Total Quizzes" value={data?.total_quizzes?.toLocaleString()} icon={BookOpen} color="bg-indigo-500 shadow-indigo-200" />
+        <StatCard label="Total Questions" value={data?.total_questions?.toLocaleString()} icon={HelpCircle} color="bg-violet-500 shadow-violet-200" />
+        <StatCard label="Total Attempts" value={data?.total_attempts?.toLocaleString()} icon={Zap} color="bg-amber-500 shadow-amber-200" />
+        <StatCard
+          label="Avg Score"
+          value={data?.average_score != null ? `${data.average_score.toFixed(1)}%` : "—"}
+          icon={Target}
+          color="bg-rose-500 shadow-rose-200"
+          sub="Across all quiz attempts"
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Activity Chart (Weekly Stats) */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <div className="flex items-center justify-between mb-6">
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Weekly Bar Chart */}
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          <div className="flex items-center justify-between mb-2">
             <div>
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <TrendingUp size={20} className="text-indigo-500" />
-                Activity Trends (7 Days)
+                <TrendingUp size={18} className="text-indigo-500" />
+                Quiz Attempts — Last 7 Days
               </h3>
-              <p className="text-sm text-slate-400">
-                Number of quiz attempts per day
-              </p>
+              <p className="text-xs text-slate-400 mt-0.5">Number of quiz completions per day</p>
             </div>
-          </div>
-
-          <div className="h-64 flex items-end justify-between gap-2">
-            {data?.weekly_stats?.length > 0 ? (
-              data.weekly_stats.map((day, i) => {
-                // Normalize height (assuming max 20 for scaling or find max)
-                const maxVal = Math.max(
-                  ...data.weekly_stats.map((d) => d.count),
-                  1,
-                );
-                const heightPct = (day.count / maxVal) * 100;
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 flex flex-col items-center gap-2 group"
-                  >
-                    <div
-                      className="w-full bg-indigo-100 rounded-t-lg relative group-hover:bg-indigo-200 transition-all"
-                      style={{ height: `${heightPct}%`, minHeight: "4px" }}
-                    >
-                      <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded pointer-events-none transition-opacity">
-                        {day.count}
-                      </div>
-                    </div>
-                    <span className="text-xs text-slate-400 font-medium truncate w-full text-center">
-                      {new Date(day.date).toLocaleDateString("en-US", {
-                        weekday: "short",
-                      })}
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-400 italic">
-                No activity data available
-              </div>
+            {data?.weekly_stats?.length > 0 && (
+              <span className="text-xs bg-indigo-50 text-indigo-600 font-bold px-3 py-1 rounded-full">
+                Total: {data.weekly_stats.reduce((s, d) => s + d.count, 0)}
+              </span>
             )}
           </div>
+          <WeeklyBarChart data={data?.weekly_stats} />
         </div>
 
-        {/* Hardest Questions / Insights */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <AlertTriangle size={20} className="text-orange-500" />
+        {/* Topic Distribution */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-5">
+            <BarChart3 size={18} className="text-violet-500" />
+            Quiz by Topic
+          </h3>
+          <TopicDistribution data={data?.topic_stats} />
+        </div>
+      </div>
+
+      {/* Hardest Questions */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-orange-500" />
             Hardest Questions
           </h3>
-          <div className="space-y-4 flex-1">
-            {data?.hardest_questions?.length > 0 ? (
-              data.hardest_questions.map((q, i) => (
-                <div
-                  key={i}
-                  className="pb-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 p-2 rounded-lg transition-colors"
-                >
-                  <p
-                    className="text-sm font-medium text-slate-700 line-clamp-2"
-                    title={q.question_text}
-                  >
-                    {q.question_text}
-                  </p>
-                  <div className="flex gap-4 mt-2 text-xs">
-                    <span className="text-red-500 font-bold">
-                      {q.incorrect} Incorrect
-                    </span>
-                    <span className="text-green-500">{q.correct} Correct</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-slate-400 text-sm">No data yet.</p>
-            )}
-          </div>
+          <span className="text-xs text-slate-400">Top 5 most failed questions</span>
         </div>
+        {data?.hardest_questions?.length > 0 ? (
+          <div className="divide-y divide-slate-50">
+            {data.hardest_questions.map((q, i) => (
+              <HardestQuestionCard key={i} q={q} rank={i + 1} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10 text-slate-300">
+            <HelpCircle size={36} className="mx-auto mb-2" />
+            <p className="text-sm italic">No question data yet</p>
+          </div>
+        )}
       </div>
     </div>
   );
